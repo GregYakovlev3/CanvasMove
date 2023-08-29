@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CH8EX1: Filled Screen with some Text</title>
+
+<script src="https://code.jquery.com/jquery-3.6.4.js"></script>
+</head>
+	
+<body>
+	<div id="animateMe" style="position: relative; top: 10px; left: 10px; width: 400px; height: 400px">
+		Animation Here
+		<canvas id="canvas" width="400" height="400">
+			Your brower does not support HTML5 Canvas
+		</canvas>	
+	</div>
+	
+<script>
+	var c = document.getElementById("canvas");
+	var ctx = c.getContext("2d");
+	
+	var increment = 0;
+	var speed = 5;
+	
+	function drawEverything() {
+	
+	bounce();
+	increment= increment + speed;
+	ctx.clearRect(0,0,400, 400);
+	
+	ctx.fillStyle = 'black';
+	ctx.fillRect(0,0, 400, 400);
+	ctx.fillStyle = "blue";
+	ctx.fillRect(increment,10,10,10);
+	//ctx.fillStyle = "purple";
+	//ctx.fillRect(increment,380,10,10);
+	ctx.fillStyle = "green";
+	ctx.fillRect(10,increment,10,10);
+	//ctx.fillStyle = "red";
+	//ctx.fillRect(increment,increment,10,10);
+	ctx.fillStyle = "yellow";
+	ctx.fillRect(380, increment, 10, 10);
+	
+	ctx.fillStyle = "brown";
+	ctx.beginPath();
+	ctx.arc(increment, increment,5,0,Math.PI*2, true);
+	ctx.closePath();  //this stopped past stamps
+	ctx.fill();
+	
+	}
+	
+	
+	function bounce() {
+		if(increment < 0)
+		{
+			speed = -speed;
+		}
+		if(increment > 400) 
+		{
+			speed = -speed;
+		}
+	}
+	
+	//function gameLoop()
+	//{
+		//window.setTimout(gameLoop, 20);
+		//drawEverything();
+	//}
+	
+	$(document).ready(function() {
+		$("#animateMe").click (
+			function() {
+				setInterval(drawEverything, 20);
+				//setInterval(drawScreen, 30);
+			}
+		);
+	});
+</script>
+</body>		
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CH8EX1: Filled Screen with some Text</title>
+
+<script src="https://code.jquery.com/jquery-3.6.4.js"></script>
+</head>
+	
+<body>
+	<label for="speed1">Speed1</label>
+	<input type="number" id="speed1"><br>
+	<label for="speed2">Speed2</label>
+	<input type="number" id="speed2"><br>
+	<input type="button" id="get_speed" value = "GetSpeed"><br>
+	
+	<div id="animateMe" style="position: relative; top: 10px; left: 10px; width: 500px; height: 500px">
+		<canvas id="canvas2" width="32" height="32" style="position: relative; top: 0px; left: 0px;">Your Browser does not support HTML5</canvas>
+		
+		Animation Here
+		<canvas id="canvas" width="500" height="500">
+			Your brower does not support HTML5 Canvas
+		</canvas>	
+	</div>	
+
+<script>
+	var c = document.getElementById("canvas");
+	var ctx = c.getContext("2d");
+	
+	//for canvas 2
+	var c2 = document.getElementById("canvas2");
+	var ctx2 = c2.getContext("2d");
+	
+	var speed = 5;
+	var speed2 = 20;
+	
+	/*$(document).ready(function() {
+		$("#get_speed").click ( function() {
+			speed = parseInt($("#speed1").val());
+			speed2 = parseInt($("#speed2").val());
+	});*/
+	
+	var gravity = 0.05;
+	var elasticity = 0.99;
+	
+	var p1 = {x:20,y:20};
+	
+	var angle = 15;
+	var angle2 = 295;
+	
+	var radians = angle * Math.PI/180;
+	var radians2 = angle2 * Math.PI/180;
+	var radius = 15;
+	var radius2 = 10;
+	
+	var vx = Math.cos(radians) * speed;
+	var vy = Math.sin(radians) * speed;
+	var vx2 = Math.cos(radians2) * speed2;
+	var vy2 = Math.cos(radians2) * speed2;
+	
+	var p2 = {x:20, y:c.height-2*radius2};
+	var mass1 = radius*radius;
+	var mass2 = radius2*radius2;
+	//var xunits = 0;
+	//var yunits = 0;
+	var ball = {x:p1.x, y:p1.y, velocityx: vx, velocityy: vy, radius: radius, elasticity:elasticity, mass:mass1};
+	var ball2 = {x:p2.x, y:p2.y, velocityx: vx2, velocityy: vy2, radius: radius2, elasticity:elasticity, mass:mass2};
+	
+	var x_image = 45;
+	var y_image = 200;
+	var dx_image = 3;
+	var dy_image = -3;
+	
+	//updateBall();
+	
+	/*function updateBall()
+	{
+		radians = angle * Math.PI/180;
+		xunits = Math.cos(radians)*speed;
+		yunits = Math.sin(radians)*speed;
+	}*/
+	
+	function hitTestCircle(ball, ball2)
+	{
+		var retval = false;
+		var dx = ball.x - ball2.x;  //x difference between balls
+		var dy = ball.y - ball2.y;	//y difference between balls
+		var distance = (dx * dx + dy * dy);  //distance square is dx^2 + dy^2
+		if(distance <= (ball.radius + ball2.radius) * (ball.radius + ball2.radius))  //distance dist^2 must be <= (r1 + r2)^2
+		{
+			retval = true;
+		}
+		return retval;
+	}
+	
+	function collideBalls(ball, ball2)
+	{
+		var dx = ball.x - ball2.x;
+		var dy = ball.y - ball2.y;
+		
+		var collisionAngle = Math.atan2(dy, dx);
+		
+		var speed3 = Math.sqrt((ball.velocityx * ball.velocityx) + (ball.velocityy * ball.velocityy));
+		var speed4 = Math.sqrt((ball2.velocityx * ball2.velocityx) + (ball2.velocityy * ball2.velocityy));
+		
+		var direction1 = Math.atan2(ball.velocityy, ball.velocityx);
+		var direction2 = Math.atan2(ball2.velocityy, ball2.velocityx);
+		
+		var velocityx_1 = speed3 * Math.cos(direction1 - collisionAngle);
+		var velocityy_1 = speed3 * Math.sin(direction1 - collisionAngle);
+		var velocityx_2 = speed4 * Math.cos(direction2 - collisionAngle);
+		var velocityy_2 = speed4 * Math.sin(direction2 - collisionAngle);
+		
+		var final_velocityx_1 = ((ball.mass - ball2.mass) * velocityx_1 + (ball2.mass + ball2.mass) * velocityx_2)/(ball.mass + ball2.mass);
+		var final_velocityx_2 = ((ball.mass + ball2.mass) * velocityx_1 + (ball2.mass - ball.mass) * velocityx_2)/(ball.mass + ball2.mass);
+		
+		var final_velocityy_1 = velocityy_1;
+		var final_velocityy_2 = velocityy_2;
+		
+		ball.velocityx = Math.cos(collisionAngle) * final_velocityx_1 + Math.cos(collisionAngle + Math.PI/2) * final_velocityy_1;
+		ball.velocityy = Math.sin(collisionAngle) * final_velocityx_1 + Math.sin(collisionAngle + Math.PI/2) * final_velocityy_1;
+		ball2.velocityx = Math.cos(collisionAngle) * final_velocityx_2 + Math.cos(collisionAngle + Math.PI/2) * final_velocityy_2;
+		ball2.velocityy = Math.sin(collisionAngle) * final_velocityx_2 + Math.sin(collisionAngle + Math.PI/2) * final_velocityy_2;
+		
+		ball.x = (ball.x += ball.velocityx);
+		ball.y = (ball.y += ball.velocityy);
+		ball2.x = (ball2.x += ball2.velocityx);
+		ball2.y = (ball2.y += ball2.velocityy);
+	}
+	
+	function drawScreen2() {
+		ctx2.fillStyle = "#A4BE5C";
+		ctx2.fillRect(0,0,c2.width, c2.height);
+		ctx2.strokeStyle = '#A4BE5C';
+		ctx2.strokeRect(1,1, c2.width-2, c2.height-2);
+		ctx2.fillStyle = "#4D5D53";
+		ctx2.beginPath();
+		ctx2.moveTo(8,16);
+		ctx2.lineTo(10, 8);
+		ctx2.lineTo(32, 16);
+		ctx2.lineTo(0, 28);
+		ctx2.lineTo(8, 16);
+		ctx2.closePath();
+		ctx2.fill();
+		ctx2.beginPath();
+		ctx2.moveTo(0,10);
+		ctx2.lineTo(4,10);
+		ctx2.lineTo(8,16);
+		ctx2.lineTo(2,16);
+		ctx2.lineTo(0,10);
+		ctx2.closePath();
+		ctx2.fill();
+		
+	}
+	function drawScreen() {
+		ctx.fillStyle = '#A4BE5C';
+		ctx.fillRect(0,0,c.width, c.height);
+		ctx.strokeStyle = '#000000';
+		ctx.strokeRect(1,1,c.width-2,c.height-2);
+		
+		var myImage = c2.toDataURL("image/png");
+		//code for movement of plane, it is flying
+		var plane = new Image();
+		plane.src = myImage;
+		x_image = x_image + dx_image;
+		y_image = y_image + dy_image;
+		ctx.save();
+		ctx.setTransform(1,0,0,1,0,0);
+		var angleInRadians = -25 * Math.PI/180;
+		ctx.translate(x_image+16, y_image+16);
+		ctx.rotate(angleInRadians);
+		
+		
+		ctx.drawImage(plane, x_image, y_image);
+		ctx.restore();
+		
+		
+		ball.velocityy += gravity;
+		
+		if((ball.y + ball.radius) >= c.height /*|| ball.y <= ball.radius*/)
+		{
+			ball.velocityy = -(ball.velocityy)*ball.elasticity;
+		}
+		else if((ball.y <= ball.radius))
+		{
+			ball.velocityy = -(ball.velocityy)*ball.elasticity;
+			ball.y = ball.radius;
+		}
+		if((ball.x + ball.radius) >= c.width /*|| ball.x <= ball.radius*/)
+		{
+			ball.velocityx = -(ball.velocityx)*ball.elasticity;
+		}
+		else if(ball.x <= ball.radius)
+		{
+			ball.velocityx = -(ball.velocityx)*ball.elasticity;
+			ball.x = ball.radius;
+		}
+		
+		//ball.x += xunits;
+		//ball.y += yunits;
+		
+		
+		ball.y += ball.velocityy;
+		ball.x += ball.velocityx;
+		ctx.fillStyle = '#964B00';
+		ctx.beginPath();
+		ctx.arc(ball.x, ball.y, ball.radius,0,Math.PI*2,true);
+		ctx.closePath();
+		ctx.fill();
+		
+		ball2.velocityy += gravity;
+		
+		if((ball2.y + ball2.radius) >= c.height || ball2.y < 0 || ball2.y <= ball2.radius)
+		{
+			ball2.velocityy = -(ball2.velocityy)*ball2.elasticity;
+		}
+		if((ball2.x + ball2.radius) >= c.width || ball2.x < 0 || ball2.x <= ball2.radius)
+		{
+			ball2.velocityx = -(ball2.velocityx)*ball2.elasticity;
+		}
+		
+		if(hitTestCircle(ball, ball2)) {
+			//ball2.velocityx = 0;
+			//ball2.velocityy = 1;
+			collideBalls(ball, ball2);
+		}
+		else
+		{
+			ball2.y += ball2.velocityy;
+			ball2.x += ball2.velocityx;
+		}
+		
+		ctx.fillStyle = 'blue';
+		ctx.beginPath();
+		ctx.arc(ball2.x, ball2.y, ball2.radius,0,Math.PI*2,true);
+		ctx.closePath();
+		ctx.fill();
+		
+		/*if(ball.x > c.width || ball.x < 0)
+		{
+			angle = 180 - angle;
+			updateBall();
+		} else if (ball.y > c.height || ball.y < 0)
+		{
+			angle = 360 - angle;
+			updateBall();
+		}*/
+	}
+	
+	$(document).ready(function() {
+		
+		$("#get_speed").click ( 
+			function() {
+			speed = parseInt($("#speed1").val());
+			speed2 = parseInt($("#speed2").val());
+			//alert(speed);
+			//alert(speed2);
+			
+			vx = Math.cos(radians) * speed;
+			vy = Math.sin(radians) * speed;
+			vx2 = Math.cos(radians2) * speed2;
+			vy2 = Math.cos(radians2) * speed2;
+			
+			ball = {x:p1.x, y:p1.y, velocityx: vx, velocityy: vy, radius: radius, elasticity:elasticity, mass:mass1};
+			ball2 = {x:p2.x, y:p2.y, velocityx: vx2, velocityy: vy2, radius: radius2, elasticity:elasticity, mass:mass2};
+			
+		});
+		$("#animateMe").click (
+			
+			function() {
+				drawScreen2();
+				setInterval(drawScreen, 30);
+				
+			}
+		);
+	});
+	
+	
+	
+</script>
+</body>		
+</html>
